@@ -1,0 +1,641 @@
+bplist00—_WebMainResource’	
+_WebResourceMIMEType_WebResourceTextEncodingName^WebResourceURL_WebResourceFrameName_WebResourceDataZtext/plainUUTF-8_khttps://bitbucket.org/E4040TA/e4040ta/raw/4d19ea9db5f5984b5c2f4f2cfb87814089a8e070/notebooks/ec2_4040.ipynbPOSh<html><head></head><body><pre style="word-wrap: break-word; white-space: pre-wrap;">{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Using Amazon Machine Image with Preloaded Theano"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 1. Setting up Amazon EC2 - Overview"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "See links to [Amazon EC2 Documentation](http://aws.amazon.com/documentation/ec2/) to help you set up with with Amazon AWS account, and with Amazon AWS EC2 service which of one of many AWS services. If you have already set up the Amazon EC2 service, you can skip to Section 2."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "A. [Amazon student](https://aws.amazon.com/education/awseducate/) AWS account provides $\\$$35 credit to students(if you register using a .edu id). For EE and CS students, the credit is $\\$$100, because the departments participate in the AWS Educate program. When filling out the AWS Educate Application, please choose as shown below.\n",
+    "    &lt;img src='https://bytebucket.org/E4040TA/e4040ta/raw/0119bb4d7732e88b5ec0ad82ef51860153472a0c/images/awseducate1.png' \\&gt; \n",
+    "    \n",
+    "B. General information about Amazon EC2 service can be found [here](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html).\n",
+    "\n",
+    "\n",
+    "C. To sign up for AWS EC2 service and prepare for launching an instance, follow the documentation [here](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/get-set-up-for-amazon-ec2.html).\n",
+    "\n",
+    "\n",
+    "D. To start an Amazon EC2 Linux instance, follow [these steps](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html).\n",
+    "\n",
+    "\n",
+    "E. Make sure to check out these [best practice guides](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-best-practices.html) to better manage your instances.\n",
+    "\n",
+    "\n",
+    "F. Make sure that you understand the [pricing information](https://aws.amazon.com/ec2/pricing/) for EC2 instances and storage."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "If you follow the previous steps, the setup time can take as little as 2 hours or as much as  half a day. Below are more detailed steps after getting the Amazon Web Services(AWS) account."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 2. Setting up Amazon AWS EC2 - Some Details"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "This section clarifies instructions related to 1.B to 1.F, which are described in AWS documentation http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/get-set-up-for-amazon-ec2.html#create-an-iam-user."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Creating a Group and an IAM User, for Secure Access to Services"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "After creating a root Amazon AWS account, follow [Create an IAM User](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/get-set-up-for-amazon-ec2.html#create-an-iam-user) section exactly to create an administrative user. IAM stands for AWS Identity and Access Management. At the end of the section, you should have created a user and log into AWS console using IAM Users Sign-in Link. IAM sign-in provides a more secure access to Amazon AWS service, beyond using the root Amazon AWS login."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Create a Security Group"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Choose EC2 from Amazon Web Services and you will be taken to your EC2 console. Make sure you choose &lt;u&gt;**US East (N Virginia)**&lt;/u&gt; as your region on the upper right corner. You will not be able to access the provided machine image from any other regions."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Navigate to Security Groups and click Create Security Group button. Add the following rules for your inbound rules, and **choose My IP** for the last two role types (your actual IP number will show up under the field called √¢‚Ç¨≈ìsource√¢‚Ç¨¬ù). The ssh port will allow you to log in through a terminal, and the 9999 port is needed to access your Jupyter notebook server.\n",
+    "&lt;img src='http://nbviewer.jupyter.org/urls/bitbucket.org/E6040TA/e6040/raw/master/notebooks/files/sg.png' /&gt;"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Creating a Key Pair"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Navigate to Key Pairs in your EC2 console, and click Create Key Pair. Type in a name for the key.\n",
+    "&lt;img src='http://nbviewer.jupyter.org/urls/bitbucket.org/E6040TA/e6040/raw/master/notebooks/files/key-pair.png' /&gt;\n",
+    "A key will then be automatically downloaded to your computer. Save that key to a folder that you will remember."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "For Linux/OS X, open a terminal, cd into the folder where you store the key and execute the following"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "chmod 400 file-name-of-your-key.pem"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "For Windows, Refer to the following [link](http://nbviewer.jupyter.org/urls/dl.dropbox.com/s/1t7s1tgftacwr8h/Connecting%20to%20AWS%20Instance%20in%20Windows.ipynb).\n",
+    "&lt;br\\&gt;\n",
+    "A brief Overview is presented below.\n",
+    "&lt;br\\&gt;\n",
+    "open PuTTygen.exe and click on load keys, choose all file types and select the key that you downloaded. Then click on generate private key. Click yes when prompted a warning, and choose a file name that you will store this key. The private key will be stored to a file with extension .ppk."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 3. Creating an EBS Volume for Storing Files"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "It is recommended that you create an additional EBS Volume to store your own files apart from the OS volume that will be created when launching the instance. This will be important to ensure that you do not loose your data when the instance is terminated, particularly if you are using Spot Instances. To do so, navigate to Volumes in your EC2 console, and click Create Volume. Enter the size of your volume. Please note how much storage you can get for free tier. Remember to select an availability zone. For example, we choose us-east-1b. When you launch your instance later, you need to choose a subnet for the same zone in order to attach this volume to your instance.\n",
+    "&lt;img src='http://nbviewer.jupyter.org/urls/bitbucket.org/E6040TA/e6040/raw/master/notebooks/files/create-volume.png' /&gt;"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 4. Launching a GPU instance Using Preloaded Amazon Machine Image"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Deep Learning courses require the use of graphics processing units (GPUs). Instructors have created and made available a public Amazon Machine Image (AMI) in which Theano and all packages required by Theano have been preloaded. \n",
+    "The AMI is only available in the US East (N. Virginia) Region as of 9/1/2016, and users/students must launch the AMI in this region. Follow the steps below to launch a GPU instance using this AMI."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "First, change your region to US East and search in the public images(menu: images/AMI, pull-down menu: public images) for ECBM4040_AMI. Then click Launch button on the top.\n",
+    "&lt;img src='https://bytebucket.org/E4040TA/e4040ta/raw/0119bb4d7732e88b5ec0ad82ef51860153472a0c/images/ami.png' /&gt;"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "You will be prompted to Step 2 of instance setup. \n",
+    "Here, choose either g2.2xlarge for an instance with 1 GPU or g2.8xlarge for one with 4 GPUs.\n",
+    "&lt;img src='http://nbviewer.jupyter.org/urls/bitbucket.org/E6040TA/e6040/raw/master/notebooks/files/ec2-launch-step2.png' /&gt;"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "In step 3 (Configure Instance Details): Choose the subnet corresponding to the availability zone on which you created the EBS Volume.\n",
+    "&lt;img src='http://nbviewer.jupyter.org/urls/bitbucket.org/E6040TA/e6040/raw/master/notebooks/files/subnet.png' /&gt;\n",
+    "You can also check Request Spot Instances and enter the maximum price that you want to pay per hour. If this is higher than the current price for the availability zone you chose, your instance will be fulfilled. This can significantly lower your cost. Remeber, however, that your instance will be terminated if either the current price is higher than the price you bid, or there are no long any unused EC2 instances available for spot request."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "In step 4 (Add Storage), add storage with at least 8 GiB size. If you wish to keep the root storage, uncheck \"Delete on Termination\" box, otherwise leave it checked. Add additional storage as you need.\n",
+    "&lt;img src='http://nbviewer.jupyter.org/urls/bitbucket.org/E6040TA/e6040/raw/master/notebooks/files/ec2-launch-step4.png' /&gt;"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "In step 5 (Tag Instance), you can leave it as is or create a new tag for you instance."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "In step 6 (Configure Security Group), select an existing security group, and choose the Security Group you have created earlier (possibly SG_us_east). "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "In step 7, review and launch the instance. \n",
+    "&lt;br/&gt;\n",
+    "Note: It is important to keep track of the credits used and making sure that the bill does not exceed $\\$$100. Please check the following link to enable [Bill alerts and Notifications](http://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/monitor-charges.html)."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### 4.1 Accessing your instance"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "If you are using Linux or OS X, you can log into your instance by"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "ssh -i path-to-your-key.pem ubuntu@replace-ec2-DNS-here"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "For file transfer, you can you sftp:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "sftp -i path-to-your-key.pem ubuntu@replace-ec2-DNS-here"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "If you are using windows, see [this page](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html) for information about logging into the system using PuTTY. For file transfer, you can use WinSCP."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### 4.2 Attaching Additional EBS Volume"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Navigate to Instances in your EC2 console. Copy the instance id of your running instance. Navigate to Volumes. Click on the EBS Volume you created earlier for storing files, and choose Attach Volume from Actions. Paste the instance id under Instance ID, and you should see this\n",
+    "&lt;img src='http://nbviewer.jupyter.org/urls/bitbucket.org/E6040TA/e6040/raw/master/notebooks/files/att-volume.png' /&gt;"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Log into your running instance. **If you are doing this for the first time**, you need to format the attached hard drive. You should first check if there is a partition on the volume by"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "sudo file -s /dev/xvdf"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "If this returns /dev/xvdf: data, then you need to format it by"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "sudo mkfs -t ext4 /dev/xvdf"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "If the previous comment return a line with UUID, then you must have formatted the drive before."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Every time you start a new instance, you can create a mounting point and mount the volume by"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "cd\n",
+    "mkdir extern\n",
+    "sudo mount /dev/xvdf extern\n",
+    "sudo chown ubuntu:ubuntu extern\n",
+    "df -h # check if the drive is mounted correctly."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "If the drive is mounted properly, you should see the output of the last command has a line indicating /dev/xvdf with mouting point /home/ubuntu/extern. You can now store all your files in the folder \"extern\". It is recommended that you only store your files and data on this volume. This way, your files and instances are independent. You can always detach the volume from one instance, terminate that instance, and attach the volume to a new instance later on. To unmount a volume from your instance"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "sudo umount /dev/xvdf"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "You can detach the volume in Volumes in EC2 console by choosing Detach Volume."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 5. Using Theano"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Once you are logged into your instance, actviate the Theano environment by:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "source activate theano"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Environment is managed by [Conda](http://conda.pydata.org/docs/) using miniconda2 installed under /home/ubuntu. You can now start using Theano. This is the environment that holds all packages that are needed to execute Theano. Therefore, you need to make sure that the environment is activated before using Theano. If the theano environment is activated, you should see '(theano)' at the begining of each line in terminal."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 6. Create Your Own AMI"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "If you install additional software packages on top of the provided AMI, and want to avoid installing them again the next time you launch an instance, you can create an image on your own instance. Details can be found [here](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html)."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 7. Using Jupyter Notebook on the GPU instance"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Configuring Jupyter Notebook Server"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Jupyter has been preloaded on the AMI. To launch a notebook server, follow the [instruction](http://jupyter-notebook.readthedocs.org/en/latest/public_server.html), or do the following:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "source activate theano\n",
+    "ipython"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "In [1]: from notebook.auth import passwd\n",
+    "In [2]: passwd()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "When prompted, set a password of your choice. **This will be the password that you will use to log into the notebook from your browser.** Copy the output starting with 'sha1:'."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**Exit ipython**. Edit the file ~/.jupyter/jupyter_notebook_config.py, **scroll to the end of the file**, and paste the above output in between the quotes on the line (uncomment the line by removing # at the beginning of the line):"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "c.NotebookApp.password = ''"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Create an self-assigned certificate to enable secure connection to the server, and make sure that the two files: mykey.key and mycert.pem are created under your home folder /home/ubuntu. (Exit ipython before you execute the following commands)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "cd ~/\n",
+    "openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout mykey.key -out mycert.pem"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Using Jupyter Notebook"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Launch jupyter notebook"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "jupyter notebook"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "In your EC2 console, add a TCP rule to the security group that your instance is using (if you have not added it in the Create Security Group step).\n",
+    "&lt;img src='http://nbviewer.jupyter.org/urls/bitbucket.org/E6040TA/e6040/raw/master/notebooks/files/add_port.png' /&gt;\n",
+    "You can now access the notebook server from your browser by enter the DNS address of your instance, e.g.: https://ec2-x-x-x-x.amazonaws.com:9999. The default port is set to 9999, this can be changed at the end of the file ~/.jupyter/jupyter_notebook_config.py. Log into the notebook server using the password you created "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 8. Configuration Files"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The following configuration is used in .bashrc file in the AMI (based on [Using GPU](http://deeplearning.net/software/theano/install.html#gpu-linux)):"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "export THEANO_FLAGS=\"cuda.root=/usr/local/cuda,device=gpu,floatX=float32\""
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "You can also manually switch between CPU and GPU before executing python code, see examples [here](http://deeplearning.net/software/theano/tutorial/using_gpu.html)."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The following configuration is added to the .jupyter/jupyter_notebook_config.py"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "c.NotebookApp.password = ''                     \n",
+    "\n",
+    "c.NotebookApp.certfile = '/home/ubuntu/mycert.pem'\n",
+    "c.NotebookApp.keyfile = '/home/ubuntu/mykey.key'\n",
+    "\n",
+    "c.NotebookApp.ip = '*'\n",
+    "c.NotebookApp.open_browser = False\n",
+    "                                  \n",
+    "c.NotebookApp.port = 9999"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 2",
+   "language": "python",
+   "name": "python2"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 2
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython2",
+   "version": "2.7.12"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 0
+}
+</pre></body></html>    ( > \ k Ç î ü •                           TÄ
